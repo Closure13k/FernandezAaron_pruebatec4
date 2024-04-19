@@ -81,19 +81,32 @@ Autorizados:
 > Obtener un listado de todos los vuelos registrados.
 
 
+**Los GET no están sujetos a autorización.**
+**Los POST, PUT y DELETE requieren autorización.**
 
 
 
 
+- Hotel
+- Hotel - Habitacion
+- Habitación
 
+- Habitación - Cliente
+
+
+
+- Vuelo
+- Vuelo - Cliente
+
+- Cliente
+
+- Usuario Autorizado
 
 
 
 
 
 Preguntas:
-1.  ¿A qué nivel guardamos las excepciones propias?
-    ¿En servicio, controlador o un paquete propio de excepciones?
 
 2.  ¿Qué criterio aplicarías para considerar que dos reservas son idénticas?
     > Para altas, validar que no exista anteriormente una reserva con idénticas características.
