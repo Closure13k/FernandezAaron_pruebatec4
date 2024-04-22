@@ -14,14 +14,18 @@ public class Hotel {
     //? TODO: Borrar a futuro y usar code.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "codigo")
+    private Long id;
+    
+    @Column(name = "codigo", unique = true, nullable = false, length = 10)
     private String code; //! TODO: Implementar un algoritmo para generar el código.
-    @Column(name = "nombre")
+    
+    @Column(name = "nombre", nullable = false)
     private String name;
-    @Column(name = "ciudad")
+    
+    @Column(name = "ciudad", nullable = false)
     private String city;
-    @Column(name = "borrado")
+    
+    @Column(name = "borrado", nullable = false)
     private Boolean isRemoved;
     
     @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY)

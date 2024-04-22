@@ -21,10 +21,12 @@ import java.time.LocalDate;
 public class RoomBooking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "fecha_inicio")
+    private Long id;
+    
+    @Column(name = "fecha_inicio", nullable = false)
     private LocalDate startDate;
-    @Column(name = "fecha_fin")
+    
+    @Column(name = "fecha_fin", nullable = false)
     private LocalDate endDate;
     
     @ManyToOne(fetch = FetchType.LAZY)

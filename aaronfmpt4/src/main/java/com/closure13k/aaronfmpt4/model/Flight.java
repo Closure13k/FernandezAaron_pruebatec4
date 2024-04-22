@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,34 +16,37 @@ import java.util.List;
 public class Flight {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "codigo")
-    private String code; // ? Implementar algoritmo para generar código de vuelo en base a origen, destino y fecha.
-    @Column(name = "origen")
-    private String origin;
-    @Column(name = "destino")
-    private String destination;
-    @Column(name = "fecha_salida")
-    private LocalDate departureDate;
-    @Column(name = "tipo_asiento")
-    private String seatType;
-    @Column(name = "plazas_disponibles")
-    private Integer availableSeats;
-    @Column(name = "precio")
-    private Double price;
+    private Long id;
     
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "RESERVAS_VUELOS",
-            joinColumns = @JoinColumn(name = "id_vuelo"),
-            inverseJoinColumns = @JoinColumn(name = "id_cliente"))
-    private List<Client> passengers;
+    @Column(name = "codigo", unique = true, nullable = false, length = 20)
+    private String code; // ? TODO: Implementar algoritmo para generar código de vuelo en base a origen, destino y fecha.
+    
+    @Column(name = "origen", nullable = false, length = 100)
+    private String origin;
+    
+    @Column(name = "destino", nullable = false, length = 100)
+    private String destination;
+    
+    @Column(name = "fecha_salida", nullable = false)
+    private LocalDate departureDate;
+    
+    @Column(name = "tipo_asiento", nullable = false)
+    private String seatType;
+    
+    @Column(name = "plazas_disponibles", nullable = false)
+    private Integer availableSeats;
+    
+    @Column(name = "precio", nullable = false, precision = 7, scale = 2)
+    private BigDecimal price;
+    
+    @OneToMany(mappedBy = "flight", fetch = FetchType.LAZY)
+    private List<FlightBooking> bookingList;
     
     @Column(name = "borrado")
     private Boolean isRemoved = false;
     
     public Flight(String code, String origin, String destination, LocalDate departureDate,
-                  String seatType, Integer availableSeats, Double price) {
+                  String seatType, Integer availableSeats, BigDecimal price) {
         this.code = code;
         this.origin = origin;
         this.destination = destination;
@@ -51,6 +55,6 @@ public class Flight {
         this.availableSeats = availableSeats;
         this.price = price;
     }
- 
-
+    
+    
 }
