@@ -1,5 +1,6 @@
 package com.closure13k.aaronfmpt4.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 

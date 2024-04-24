@@ -4,30 +4,25 @@ import com.closure13k.aaronfmpt4.dto.HotelRequestDTO;
 import com.closure13k.aaronfmpt4.dto.HotelResponseDTO;
 import com.closure13k.aaronfmpt4.dto.RoomRequestDTO;
 import com.closure13k.aaronfmpt4.dto.RoomResponseDTO;
-import com.closure13k.aaronfmpt4.exception.ExistingEntityException;
-import com.closure13k.aaronfmpt4.exception.HotelNotFoundException;
-import com.closure13k.aaronfmpt4.exception.RoomNotFoundException;
 import com.closure13k.aaronfmpt4.service.IHotelService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSourceResolvable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Controller for the Hotel and Room entities.
@@ -67,7 +62,7 @@ public class HotelController {
     
     @PutMapping("/hotels/edit/{id}")
     public ResponseEntity<HotelResponseDTO> updateHotel(@NotNull @Positive @PathVariable Long id,
-                                                        @RequestBody HotelRequestDTO hotelDTO) {
+                                                        @Valid @RequestBody HotelRequestDTO hotelDTO) {
         service.updateHotel(id, hotelDTO);
         return ResponseEntity.ok().build();
     }
@@ -75,7 +70,7 @@ public class HotelController {
     @DeleteMapping("/hotels/delete/{id}")
     public ResponseEntity<HotelResponseDTO> deleteHotel(@NotNull @Positive @PathVariable Long id) {
         service.deleteHotel(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.accepted().build();
     }
     
     @GetMapping("/hotels/{id}/rooms")
@@ -98,7 +93,7 @@ public class HotelController {
     @PutMapping("/hotels/{hotelId}/rooms/edit/{roomId}")
     public ResponseEntity<RoomResponseDTO> updateRoom(@NotNull @Positive @PathVariable Long hotelId,
                                                       @NotNull @Positive @PathVariable Long roomId,
-                                                      @RequestBody RoomRequestDTO roomDTO) {
+                                                      @Valid @RequestBody RoomRequestDTO roomDTO) {
         service.updateRoom(hotelId, roomId, roomDTO);
         return ResponseEntity.ok().build();
     }
@@ -109,64 +104,21 @@ public class HotelController {
         return ResponseEntity.ok(service.deleteRoom(hotelId, roomId));
     }
     
-    @GetMapping("/rooms")
+    @GetMapping("/hotels/rooms")
     public ResponseEntity<List<RoomResponseDTO>> getRoomsByDateAndDestination(
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE,
+                    fallbackPatterns = {"yyyy/MM/dd", "dd-MM-yyyy", "dd/MM/yyyy"}
+            )
             @RequestParam LocalDate dateFrom,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @RequestParam LocalDate dateTo,
-            @NotBlank @RequestParam String destination) {
+            @RequestParam String destination) {
         return ResponseEntity.ok(service.getRoomsByDateAndDestination(dateFrom, dateTo, destination));
     }
     
     
-    
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
-    }
-    
-    @ExceptionHandler({HotelNotFoundException.class, RoomNotFoundException.class})
-    public ResponseEntity<Map<String, String>> handleNotFoundException(Exception e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-    
-    
-    @ExceptionHandler(ExistingEntityException.class)
-    public ResponseEntity<Map<String, String>> handleExistingEntityException(ExistingEntityException e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-    
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
-    }
-    
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<Map<String, List<String>>> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
-        Map<String, List<String>> response = new HashMap<>();
-        List<String> errors = e.getAllErrors()
-                .stream()
-                .map(MessageSourceResolvable::getDefaultMessage)
-                .toList();
-        
-        response.put("errors", errors);
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
+
+
     
 }

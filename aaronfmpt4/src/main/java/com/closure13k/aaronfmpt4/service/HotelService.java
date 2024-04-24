@@ -4,9 +4,9 @@ import com.closure13k.aaronfmpt4.dto.HotelRequestDTO;
 import com.closure13k.aaronfmpt4.dto.HotelResponseDTO;
 import com.closure13k.aaronfmpt4.dto.RoomRequestDTO;
 import com.closure13k.aaronfmpt4.dto.RoomResponseDTO;
+import com.closure13k.aaronfmpt4.exception.DTOValidationException;
+import com.closure13k.aaronfmpt4.exception.EntityNotFoundException;
 import com.closure13k.aaronfmpt4.exception.ExistingEntityException;
-import com.closure13k.aaronfmpt4.exception.HotelNotFoundException;
-import com.closure13k.aaronfmpt4.exception.RoomNotFoundException;
 import com.closure13k.aaronfmpt4.model.Hotel;
 import com.closure13k.aaronfmpt4.model.Room;
 import com.closure13k.aaronfmpt4.repository.HotelRepository;
@@ -23,6 +23,7 @@ import java.util.List;
 @Service
 public class HotelService implements IHotelService {
     
+    public static final String HOTEL_ENTITY = "Hotel";
     private final HotelRepository hotelRepository;
     
     private final RoomRepository roomRepository;
@@ -31,7 +32,7 @@ public class HotelService implements IHotelService {
     public List<HotelResponseDTO> getAllHotels() {
         List<Hotel> allActiveHotels = hotelRepository.findAllActive();
         if (allActiveHotels.isEmpty()) {
-            throw HotelNotFoundException.listIsEmpty();
+            throw EntityNotFoundException.listIsEmpty("Hotels");
         }
         
         return allActiveHotels.stream()
@@ -44,7 +45,7 @@ public class HotelService implements IHotelService {
     public HotelResponseDTO getHotelById(Long id) {
         return hotelRepository.findActiveById(id)
                 .map(HotelService::toBasicHotelDTO)
-                .orElseThrow(() -> HotelNotFoundException.byId(id));
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
     }
     
     
@@ -52,7 +53,7 @@ public class HotelService implements IHotelService {
     public HotelResponseDTO createHotel(HotelRequestDTO hotelDTO) {
         hotelRepository.findByCode(hotelDTO.code())
                 .ifPresent(hotel -> {
-                    throw ExistingEntityException.byUniqueField("Hotel", "code", hotelDTO.code());
+                    throw ExistingEntityException.byUniqueField(HOTEL_ENTITY, "code", hotelDTO.code());
                 });
         
         Hotel hotel = this.fromDTO(hotelDTO);
@@ -78,12 +79,16 @@ public class HotelService implements IHotelService {
     
     @Override
     public void updateHotel(Long id, HotelRequestDTO hotelDTO) {
-        Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> HotelNotFoundException.byId(id));
+        Hotel hotel = hotelRepository.findActiveById(id)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
         
         
         String code = hotelDTO.code();
-        if (code != null && !code.isBlank()) {
+        if (code != null && !code.isBlank() && !code.equals(hotel.getCode())) {
+            hotelRepository.findByCode(code)
+                    .ifPresent(h -> {
+                        throw ExistingEntityException.byUniqueField(HOTEL_ENTITY, "code", code);
+                    });
             hotel.setCode(code);
         }
         
@@ -102,14 +107,14 @@ public class HotelService implements IHotelService {
     
     @Override
     public void deleteHotel(Long id) {
-        Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> HotelNotFoundException.byId(id));
+        Hotel hotel = hotelRepository.findActiveById(id)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
         if (Boolean.TRUE.equals(hotel.getIsRemoved())) {
-            throw HotelNotFoundException.byId(id);
+            throw EntityNotFoundException.byId(HOTEL_ENTITY, id);
         }
         
         if (hasActiveChildren(hotel)) {
-            throw ExistingEntityException.hasActiveChildren("Hotel", "rooms", id);
+            throw ExistingEntityException.hasActiveChildren(HOTEL_ENTITY, "rooms", id);
         }
         
         hotel.setIsRemoved(true);
@@ -122,9 +127,11 @@ public class HotelService implements IHotelService {
     
     @Override
     public List<RoomResponseDTO> getRoomsByHotelId(Long id) {
-        List<Room> rooms = roomRepository.findByHotelId(id);
+        Hotel hotel = hotelRepository.findActiveById(id)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
+        List<Room> rooms = roomRepository.findByActiveHotelId(hotel.getId());
         if (rooms.isEmpty()) {
-            throw RoomNotFoundException.listIsEmpty();
+            throw EntityNotFoundException.listIsEmpty("Rooms");
         }
         
         return rooms.stream()
@@ -135,20 +142,20 @@ public class HotelService implements IHotelService {
     
     @Override
     public RoomResponseDTO getRoomByHotelIdAndRoomId(Long hotelId, Long roomId) {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> HotelNotFoundException.byId(hotelId));
+        Hotel hotel = hotelRepository.findActiveById(hotelId)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, hotelId));
         
         return hotel.getRooms().stream()
                 .filter(room -> room.getId().equals(roomId))
                 .findFirst()
                 .map(HotelService::toBasicRoomDTO)
-                .orElseThrow(() -> RoomNotFoundException.byId(roomId));
+                .orElseThrow(() -> EntityNotFoundException.byId("Room", roomId));
     }
     
     @Override
     public RoomResponseDTO createRoom(Long id, RoomRequestDTO roomDTO) {
-        Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> HotelNotFoundException.byId(id));
+        Hotel hotel = hotelRepository.findActiveById(id)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
         
         Room room = fromDTO(roomDTO, hotel);
         roomRepository.save(room);
@@ -157,28 +164,47 @@ public class HotelService implements IHotelService {
     }
     
     
+    // * TODO: Review all this logic
     @Override
     public void updateRoom(Long hotelId, Long roomId, RoomRequestDTO roomDTO) {
-        Room room = roomRepository.findByHotelIdAndRoomId(hotelId, roomId)
-                .orElseThrow(() -> RoomNotFoundException.byId(roomId));
+        Hotel hotel = hotelRepository.findActiveById(hotelId)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, hotelId));
+        Room room = roomRepository.findByHotelIdAndRoomId(hotel.getId(), roomId)
+                .orElseThrow(() -> EntityNotFoundException.byId("Room", roomId));
         
-        room.setCode(roomDTO.code());
-        room.setType(roomDTO.type());
-        room.setAvailableFrom(roomDTO.availableFrom());
-        room.setAvailableTo(roomDTO.availableTo());
-        room.setPrice(roomDTO.price());
+        String type = roomDTO.type();
+        if (type != null && !type.isBlank()) {
+            room.setType(type);
+        }
+        
+        LocalDate availableFrom = roomDTO.availableFrom();
+        if (availableFrom != null) {
+            LocalDate availableTo = roomDTO.availableTo();
+            if (availableTo == null) {
+                throw new DTOValidationException("'availableTo' cannot be null if 'availableFrom' is provided");
+            }
+            if (availableFrom.isAfter(availableTo)) {
+                throw new DTOValidationException("availableFrom cannot be after availableTo");
+            }
+            room.setAvailableFrom(availableFrom);
+            room.setAvailableTo(availableTo);
+        }
+        
+        BigDecimal price = roomDTO.price();
+        if (price != null) {
+            room.setPrice(price);
+        }
         
         roomRepository.save(room);
     }
     
     @Override
     public RoomResponseDTO deleteRoom(Long hotelId, Long roomId) {
-        Room room = roomRepository.findByHotelIdAndRoomId(hotelId, roomId)
-                .orElseThrow(() -> RoomNotFoundException.byId(roomId));
+        Hotel hotel = hotelRepository.findActiveById(hotelId)
+                .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, hotelId));
         
-        if (Boolean.TRUE.equals(room.getIsRemoved())) {
-            throw RoomNotFoundException.byId(roomId);
-        }
+        Room room = roomRepository.findByHotelIdAndRoomId(hotel.getId(), roomId)
+                .orElseThrow(() -> EntityNotFoundException.byId("Room", roomId));
         
         room.setIsRemoved(true);
         roomRepository.save(room);
@@ -191,7 +217,7 @@ public class HotelService implements IHotelService {
         List<Room> rooms = roomRepository
                 .findByDateRangeAndDestination(startDate, endDate, destination);
         if (rooms.isEmpty()) {
-            throw RoomNotFoundException.listIsEmpty();
+            throw EntityNotFoundException.listIsEmpty("Rooms");
         }
         
         return rooms.stream()
@@ -224,7 +250,7 @@ public class HotelService implements IHotelService {
                 .withType(room.getType())
                 .withAvailableFrom(room.getAvailableFrom().toString())
                 .withAvailableTo(room.getAvailableTo().toString())
-                .withPrice(formatMonetaryValue(room.getPrice()))
+                .withPrice(NumberFormat.getCurrencyInstance().format(room.getPrice()))
                 .build();
     }
     
@@ -247,9 +273,5 @@ public class HotelService implements IHotelService {
         room.setPrice(roomDTO.price());
         room.setHotel(hotel);
         return room;
-    }
-    
-    private static String formatMonetaryValue(BigDecimal price) {
-        return NumberFormat.getCurrencyInstance().format(price);
     }
 }

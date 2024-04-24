@@ -1,7 +1,12 @@
 package com.closure13k.aaronfmpt4.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +32,7 @@ public class Client {
     @Column(nullable = false, length = 100)
     private String surname;
     
-    @Column(nullable = false, length = 100)
+    @Column(unique = true, nullable = false, length = 100)
     private String email;
     
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)

@@ -11,12 +11,13 @@ import java.util.Optional;
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
     
+    
+    @Query("FROM Hotel h WHERE h.isRemoved = false")
+    List<Hotel> findAllActive();
+    
     @Query("FROM Hotel h WHERE h.id = :id AND h.isRemoved = false")
     Optional<Hotel> findActiveById(Long id);
     
     Optional<Hotel> findByCode(String code);
-    
-    @Query("FROM Hotel h WHERE h.isRemoved = false")
-    List<Hotel> findAllActive();
     
 }

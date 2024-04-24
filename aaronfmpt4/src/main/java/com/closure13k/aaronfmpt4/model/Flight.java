@@ -30,7 +30,7 @@ public class Flight {
     @Column(nullable = false)
     private LocalDate departureDate;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String seatType;
     
     @Column(nullable = false)
