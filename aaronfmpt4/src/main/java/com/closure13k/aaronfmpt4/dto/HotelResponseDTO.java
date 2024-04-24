@@ -8,11 +8,11 @@ import java.util.List;
 @Builder(setterPrefix = "with")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record HotelResponseDTO(
-        Integer id,
+        Long id,
         String code,
         String name,
         String city,
         Boolean isRemoved,
-        List<RoomDTO> rooms
+        List<RoomResponseDTO> rooms
 ) {
 }

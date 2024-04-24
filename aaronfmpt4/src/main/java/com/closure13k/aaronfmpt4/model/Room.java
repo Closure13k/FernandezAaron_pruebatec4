@@ -12,26 +12,26 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "HABITACION")
+@Entity
 public class Room {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "codigo", nullable = false, length = 10)
+    @Column(nullable = false, length = 10)
     private String code;
     
-    @Column(name = "tipo", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String type;
     
-    @Column(name = "precio", nullable = false, precision = 7, scale = 2)
+    @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal price;
     
-    @Column(name = "fecha_disponible_desde", nullable = false)
+    @Column(nullable = false)
     private LocalDate availableFrom;
     
-    @Column(name = "fecha_disponible_hasta", nullable = false)
+    @Column(nullable = false)
     private LocalDate availableTo;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,15 +41,6 @@ public class Room {
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
     private List<RoomBooking> bookingList;
     
-    @Column(name = "borrado")
-    private Boolean isRemoved;
+    private Boolean isRemoved = false;
     
-    public Room(String type, BigDecimal price, LocalDate availableFrom, LocalDate availableTo, Hotel hotel) {
-        this.type = type;
-        this.price = price;
-        this.availableFrom = availableFrom;
-        this.availableTo = availableTo;
-        this.hotel = hotel;
-        this.isRemoved = false;
-    }
 }

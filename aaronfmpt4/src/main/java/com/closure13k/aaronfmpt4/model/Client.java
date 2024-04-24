@@ -12,22 +12,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "CLIENTE")
+@Entity
 public class Client {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "nif", unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String nif;     // ? TODO: Considera una validación estricta de DNI. Si no, al menos el pattern.
     
-    @Column(name = "nombre", nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;
     
-    @Column(name = "apellidos", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String surname;
     
-    @Column(name = "email", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
     
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
@@ -36,7 +36,6 @@ public class Client {
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     private List<RoomBooking> reservedRooms;
     
-    @Column(name = "borrado")
     private Boolean isRemoved = false;
     
     public Client(String nif, String name, String surname, String email) {

@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "HOTEL")
+@Entity
 public class Hotel {
     
     //? TODO: Borrar a futuro y usar code.
@@ -16,25 +16,17 @@ public class Hotel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "codigo", unique = true, nullable = false, length = 10)
+    @Column(unique = true, nullable = false, length = 10)
     private String code; //! TODO: Implementar un algoritmo para generar el código.
     
-    @Column(name = "nombre", nullable = false)
+    @Column(nullable = false)
     private String name;
     
-    @Column(name = "ciudad", nullable = false)
+    @Column(nullable = false)
     private String city;
     
-    @Column(name = "borrado", nullable = false)
-    private Boolean isRemoved;
+    private Boolean isRemoved = false;
     
     @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY)
     private List<Room> rooms;
-    
-    public Hotel(String code, String name, String city) {
-        this.code = code;
-        this.name = name;
-        this.city = city;
-        this.isRemoved = false;
-    }
 }

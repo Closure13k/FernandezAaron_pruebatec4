@@ -9,20 +9,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
-@Entity(name = "RESERVA_VUELO")
+@Entity
 public class FlightBooking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "codigo", unique = true, nullable = false)
+    @Column(nullable = false)
     private String code;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_cliente", nullable = false)
+    @JoinColumn(nullable = false)
     private Client client;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_vuelo", nullable = false)
+    @JoinColumn(nullable = false)
     private Flight flight;
 }
