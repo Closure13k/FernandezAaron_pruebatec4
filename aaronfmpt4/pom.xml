@@ -60,7 +60,6 @@
         </dependency>
 
 
-        <!-- TODO: Review if it remains necessary -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>

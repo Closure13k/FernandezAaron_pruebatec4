@@ -1,9 +1,9 @@
 package com.closure13k.aaronfmpt4.service;
 
-import com.closure13k.aaronfmpt4.dto.HotelRequestDTO;
-import com.closure13k.aaronfmpt4.dto.HotelResponseDTO;
-import com.closure13k.aaronfmpt4.dto.RoomRequestDTO;
-import com.closure13k.aaronfmpt4.dto.RoomResponseDTO;
+import com.closure13k.aaronfmpt4.dto.request.HotelRequestDTO;
+import com.closure13k.aaronfmpt4.dto.response.HotelResponseDTO;
+import com.closure13k.aaronfmpt4.dto.request.RoomRequestDTO;
+import com.closure13k.aaronfmpt4.dto.response.RoomResponseDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

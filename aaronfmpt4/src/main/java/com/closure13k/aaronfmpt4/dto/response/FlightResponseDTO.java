@@ -1,8 +1,9 @@
-package com.closure13k.aaronfmpt4.dto;
+package com.closure13k.aaronfmpt4.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Builder(setterPrefix = "with")
@@ -13,9 +14,8 @@ public record FlightResponseDTO(
         String origin,
         String destination,
         String departureDate,
-        String seatType,
         Integer availableSeats,
-        String price,
+        BigDecimal price,
         Boolean isRemoved,
         List<FlightBookingResponseDTO> bookings
 ) {

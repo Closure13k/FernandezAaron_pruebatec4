@@ -28,7 +28,6 @@ public class ControllerAdvice {
     private static final String STATUS = "status";
     private static final String ERRORS = "errors";
     
-    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -41,13 +40,12 @@ public class ControllerAdvice {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
     
-    @ExceptionHandler({EntityNotFoundException.class})
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(EntityNotFoundException e) {
         Map<String, String> response = new HashMap<>();
         response.put(MESSAGE, e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-    
     
     @ExceptionHandler(ExistingEntityException.class)
     public ResponseEntity<Map<String, String>> handleExistingEntityException(ExistingEntityException e) {
@@ -76,7 +74,6 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
-    
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         Map<String, String> response = new HashMap<>();
@@ -100,6 +97,5 @@ public class ControllerAdvice {
         response.put(MESSAGE, e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-    
     
 }

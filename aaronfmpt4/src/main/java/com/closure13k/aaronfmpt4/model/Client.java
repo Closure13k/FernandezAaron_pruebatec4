@@ -1,17 +1,10 @@
 package com.closure13k.aaronfmpt4.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -32,22 +25,15 @@ public class Client {
     @Column(nullable = false, length = 100)
     private String surname;
     
-    @Column(unique = true, nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
     
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     private List<FlightBooking> reservedFlights;
     
-    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "clients", fetch = FetchType.LAZY)
     private List<RoomBooking> reservedRooms;
     
     private Boolean isRemoved = false;
     
-    public Client(String nif, String name, String surname, String email) {
-        this.nif = nif;
-        this.name = name;
-        this.surname = surname;
-        this.email = email;
-        this.reservedFlights = new ArrayList<>();
-    }
 }

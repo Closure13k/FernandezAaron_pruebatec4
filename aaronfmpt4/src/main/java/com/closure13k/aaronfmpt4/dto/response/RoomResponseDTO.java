@@ -1,9 +1,9 @@
-package com.closure13k.aaronfmpt4.dto;
+package com.closure13k.aaronfmpt4.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Builder(setterPrefix = "with")
@@ -12,7 +12,7 @@ public record RoomResponseDTO(
         Long id,
         String code,
         String type,
-        String price,
+        BigDecimal price,
         String availableFrom,
         String availableTo,
         HotelResponseDTO hotel,

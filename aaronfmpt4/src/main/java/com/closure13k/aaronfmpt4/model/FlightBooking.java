@@ -8,7 +8,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class FlightBooking {
     @Id
@@ -17,6 +23,9 @@ public class FlightBooking {
     
     @Column(nullable = false)
     private String code;
+    
+    @Column(nullable = false, length = 20)
+    private String seatType;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

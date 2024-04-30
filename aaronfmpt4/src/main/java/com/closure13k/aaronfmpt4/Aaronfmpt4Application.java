@@ -22,5 +22,4 @@ public class Aaronfmpt4Application {
                 .description("API for a tourism agency."));
     }
     
-    
 }

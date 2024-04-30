@@ -18,6 +18,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     @Query("FROM Hotel h WHERE h.id = :id AND h.isRemoved = false")
     Optional<Hotel> findActiveById(Long id);
     
+    Integer countByCodeStartingWith(String code);
+    
     Optional<Hotel> findByCode(String code);
     
 }

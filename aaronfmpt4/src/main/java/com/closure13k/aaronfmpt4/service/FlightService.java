@@ -1,7 +1,8 @@
 package com.closure13k.aaronfmpt4.service;
 
-import com.closure13k.aaronfmpt4.dto.FlightRequestDTO;
-import com.closure13k.aaronfmpt4.dto.FlightResponseDTO;
+import com.closure13k.aaronfmpt4.dto.request.FlightRequestDTO;
+import com.closure13k.aaronfmpt4.dto.response.FlightResponseDTO;
+import com.closure13k.aaronfmpt4.exception.DTOValidationException;
 import com.closure13k.aaronfmpt4.exception.EntityNotFoundException;
 import com.closure13k.aaronfmpt4.exception.ExistingEntityException;
 import com.closure13k.aaronfmpt4.model.Flight;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -49,10 +49,7 @@ public class FlightService implements IFlightService {
                     throw ExistingEntityException.byUniqueField(FLIGHT_ENTITY, "code", flightDTO.code());
                 });
         
-        Flight flight = this.fromDTO(flightDTO);
-        repository.save(flight);
-        
-        return toBasicFlightDTOWithId(flight);
+        return toBasicFlightDTOWithId(repository.save(fromDTO(flightDTO)));
         
     }
     
@@ -73,47 +70,71 @@ public class FlightService implements IFlightService {
         Flight flight = repository.findActiveById(id)
                 .orElseThrow(() -> EntityNotFoundException.byId(FLIGHT_ENTITY, id));
         
-        String code = flightDTO.code();
-        if (code != null && !code.isBlank() && !code.equals(flight.getCode())) {
-            repository.findByCode(code)
-                    .ifPresent(f -> {
-                        throw ExistingEntityException.byUniqueField(FLIGHT_ENTITY, "code", code);
-                    });
-            flight.setCode(code);
-        }
-        
-        String origin = flightDTO.origin();
-        if (origin != null && !origin.isBlank()) {
-            flight.setOrigin(origin);
-        }
-        
-        String destination = flightDTO.destination();
-        if (destination != null && !destination.isBlank()) {
-            flight.setDestination(destination);
-        }
-        
-        LocalDate departureDate = flightDTO.departureDate();
-        if (departureDate != null) {
-            flight.setDepartureDate(departureDate);
-        }
-        
-        String seatType = flightDTO.seatType();
-        if (seatType != null && !seatType.isBlank()) {
-            flight.setSeatType(seatType);
-        }
-        
-        Integer availableSeats = flightDTO.availableSeats();
-        if (availableSeats != null) {
-            flight.setAvailableSeats(availableSeats);
-        }
-        
-        BigDecimal price = flightDTO.price();
-        if (price != null) {
-            flight.setPrice(price);
+        int updates = checkAndApplyUpdates(flightDTO, flight);
+        if (updates == 0) {
+            throw DTOValidationException.noFieldsToUpdate();
         }
         
         repository.save(flight);
     }
+    
+    private int checkAndApplyUpdates(FlightRequestDTO request, Flight flight) {
+        int updates = 0;
+        String code = request.code();
+        if (isCodeUpdated(code, flight.getCode())) {
+            flight.setCode(code);
+            updates++;
+        }
+        
+        String origin = request.origin();
+        if (isFieldUpdated(origin)) {
+            flight.setOrigin(origin);
+            updates++;
+        }
+        
+        
+        String destination = request.destination();
+        if (isFieldUpdated(destination)) {
+            flight.setDestination(destination);
+            updates++;
+        }
+        
+        LocalDate departureDate = request.departureDate();
+        if (departureDate != null) {
+            flight.setDepartureDate(departureDate);
+            updates++;
+        }
+        
+        Integer availableSeats = request.availableSeats();
+        if (availableSeats != null) {
+            flight.setAvailableSeats(availableSeats);
+            updates++;
+        }
+        
+        BigDecimal price = request.price();
+        if (price != null) {
+            flight.setPrice(price);
+            updates++;
+        }
+        
+        return updates;
+    }
+    
+    private boolean isCodeUpdated(String newCode, String currentCode) {
+        if (newCode != null && !newCode.isBlank() && !newCode.equals(currentCode)) {
+            repository.findByCode(newCode)
+                    .ifPresent(f -> {
+                        throw ExistingEntityException.byUniqueField(FLIGHT_ENTITY, "code", newCode);
+                    });
+            return true;
+        }
+        return false;
+    }
+    
+    private static boolean isFieldUpdated(String destination) {
+        return destination != null && !destination.isBlank();
+    }
+    
     
     @Override
     public void deleteFlight(Long id) {
@@ -128,6 +149,20 @@ public class FlightService implements IFlightService {
         repository.save(flight);
     }
     
+    @Override
+    public List<FlightResponseDTO> getFlightsByDateRangeAndLocations(LocalDate dateFrom, LocalDate dateTo, String origin, String destination) {
+        
+        List<Flight> flights = repository.findByDateRangeAndLocations(dateFrom, dateTo, origin, destination);
+        if (flights.isEmpty()) {
+            throw EntityNotFoundException.listIsEmpty(FLIGHT_ENTITY);
+        }
+        return flights.stream()
+                .map(FlightService::toBasicFlightDTO)
+                .toList();
+        
+        
+    }
+    
     
     private static FlightResponseDTO toBasicFlightDTO(Flight flight) {
         return FlightResponseDTO.builder()
@@ -135,9 +170,8 @@ public class FlightService implements IFlightService {
                 .withOrigin(flight.getOrigin())
                 .withDestination(flight.getDestination())
                 .withDepartureDate(String.valueOf(flight.getDepartureDate()))
-                .withSeatType(flight.getSeatType())
                 .withAvailableSeats(flight.getAvailableSeats())
-                .withPrice(NumberFormat.getCurrencyInstance().format(flight.getPrice()))
+                .withPrice(flight.getPrice())
                 .build();
     }
     
@@ -148,21 +182,23 @@ public class FlightService implements IFlightService {
                 .withOrigin(flight.getOrigin())
                 .withDestination(flight.getDestination())
                 .withDepartureDate(String.valueOf(flight.getDepartureDate()))
-                .withSeatType(flight.getSeatType())
                 .withAvailableSeats(flight.getAvailableSeats())
-                .withPrice(NumberFormat.getCurrencyInstance().format(flight.getPrice()))
+                .withPrice(flight.getPrice())
                 .build();
     }
     
     private Flight fromDTO(FlightRequestDTO flightDTO) {
         Flight flight = new Flight();
-        flight.setCode(flightDTO.code());
         flight.setOrigin(flightDTO.origin());
         flight.setDestination(flightDTO.destination());
         flight.setDepartureDate(flightDTO.departureDate());
-        flight.setSeatType(flightDTO.seatType());
         flight.setAvailableSeats(flightDTO.availableSeats());
         flight.setPrice(flightDTO.price());
+        if (flightDTO.code() == null || flightDTO.code().isBlank()) {
+            flight.generateCode();
+        } else {
+            flight.setCode(flightDTO.code());
+        }
         
         return flight;
     }

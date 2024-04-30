@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -22,18 +23,14 @@ public class RoomBooking {
     @Column(nullable = false)
     private LocalDate endDate;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
-    private Client client;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "room_booking_client",
+            joinColumns = @JoinColumn(name = "room_booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "client_id"))
+    private List<Client> clients;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
-    
-    public RoomBooking(LocalDate startDate, LocalDate endDate, Client client, Room room) {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.client = client;
-        this.room = room;
-    }
 }

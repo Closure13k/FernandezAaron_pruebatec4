@@ -22,4 +22,8 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     
     @Query("SELECT r FROM Room r WHERE r.hotel.id = ?1 AND r.hotel.isRemoved = false AND r.isRemoved = false")
     List<Room> findByActiveHotelId(Long id);
+    
+    Optional<Room> findByCode(String code);
+    
+    Integer countByCodeStartingWith(String codePrefix);
 }

@@ -1,4 +1,4 @@
-package com.closure13k.aaronfmpt4.dto;
+package com.closure13k.aaronfmpt4.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

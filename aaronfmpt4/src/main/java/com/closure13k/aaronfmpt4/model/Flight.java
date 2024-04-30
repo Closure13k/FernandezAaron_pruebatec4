@@ -18,8 +18,8 @@ public class Flight {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false, length = 20)
-    private String code; // ? TODO: Implementar algoritmo para generar código de vuelo en base a origen, destino y fecha.
+    @Column(unique = true, nullable = false, length = 50)
+    private String code;
     
     @Column(nullable = false, length = 100)
     private String origin;
@@ -29,9 +29,6 @@ public class Flight {
     
     @Column(nullable = false)
     private LocalDate departureDate;
-    
-    @Column(nullable = false, length = 20)
-    private String seatType;
     
     @Column(nullable = false)
     private Integer availableSeats;
@@ -44,4 +41,16 @@ public class Flight {
     
     private Boolean isRemoved = false;
     
+    /**
+     * Generate a code for the flight if one is not provided.
+     * Generates the code from the first 3 letters of the origin and destination.
+     * Then adds the number of available seats, the departure date, and the current day of the year.
+     */
+    public void generateCode() {
+        this.code = origin.substring(0, 3).toUpperCase()
+                + destination.substring(0, 3).toUpperCase()
+                + String.format("%04d", availableSeats)
+                + departureDate.toString().replace("-", "")
+                + LocalDate.now().getDayOfYear();
+    }
 }
