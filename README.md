@@ -28,12 +28,12 @@ Proporcionado también una colección de Postman `Agencia Turismo (AaronFMPT4)` 
 ![uml_diagram](uml_diagram.png)
 
 ### ESTRUCTURA DEL PROYECTO
-- Config: Guarda la configuración de Spring Security.
-- Controller: Maneja y valida las request del usuario.
-- DTO: Contiene los modelos Data Transfer Object, tanto para requests como para responses.
-- Model: Contiene las clases entidad del modelo.
-- Repository: Contiene los métodos para la capa de datos.
-- Service: Contiene la lógica de negocio e intermedia entre el repositorio y el controlador.
+- `Config` Guarda la configuración de Spring Security.
+- `Controller` Maneja y valida las request del usuario.
+- `DTO` Contiene los modelos Data Transfer Object, tanto para requests como para responses.
+- `Model` Contiene las clases entidad del modelo.
+- `Repository` Contiene los métodos para la capa de datos.
+- `Service` Contiene la lógica de negocio e intermedia entre el repositorio y el controlador.
 
 ## 💭SUPUESTOS
 - Se ha implementado un método de persistencia para clientes a modo de cascada. No se ha considerado la necesidad de un CRUD  completo para esta tabla.
