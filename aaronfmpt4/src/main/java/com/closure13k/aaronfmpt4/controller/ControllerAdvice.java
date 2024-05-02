@@ -28,6 +28,10 @@ public class ControllerAdvice {
     private static final String STATUS = "status";
     private static final String ERRORS = "errors";
     
+    /**
+     * Handle validation exceptions.
+     * This method is called when a request body validation fails.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -40,6 +44,10 @@ public class ControllerAdvice {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
     
+    /**
+     * Handle entity not found exceptions.
+     * This method is called when an entity is not found in the database.
+     */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(EntityNotFoundException e) {
         Map<String, String> response = new HashMap<>();
@@ -47,6 +55,10 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
     
+    /**
+     * Handle existing entity exceptions.
+     * This method is called when an entity already exists in the database.
+     */
     @ExceptionHandler(ExistingEntityException.class)
     public ResponseEntity<Map<String, String>> handleExistingEntityException(ExistingEntityException e) {
         Map<String, String> response = new HashMap<>();
@@ -54,6 +66,10 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
     
+    /**
+     * Handle data integrity violation exceptions.
+     * This method is called when a data integrity violation occurs.
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         Map<String, String> response = new HashMap<>();
@@ -61,6 +77,10 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
     }
     
+    /**
+     * Handle handler method validation exceptions.
+     * This method is called when a request parameter validation fails.
+     */
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<Map<String, List<String>>> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
         Map<String, List<String>> response = new HashMap<>();
@@ -74,6 +94,10 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
+    /**
+     * Handle missing servlet request parameter exceptions.
+     * This method is called when a required request parameter is missing.
+     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
         Map<String, String> response = new HashMap<>();
@@ -81,6 +105,10 @@ public class ControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
+    /**
+     * Handle HTTP request method not supported exceptions.
+     * This method is called when an unsupported HTTP method is used.
+     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
@@ -91,6 +119,10 @@ public class ControllerAdvice {
         return new ResponseEntity<>(body, HttpStatus.METHOD_NOT_ALLOWED);
     }
     
+    /**
+     * Handle DTO validation exceptions.
+     * This method is called when a DTO validation fails.
+     */
     @ExceptionHandler(DTOValidationException.class)
     public ResponseEntity<Map<String, String>> handleDTOValidationException(DTOValidationException e) {
         Map<String, String> response = new HashMap<>();

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FlightRepository extends JpaRepository<Flight, Integer> {
+public interface FlightRepository extends JpaRepository<Flight, Long> {
     @Query("SELECT f FROM Flight f WHERE f.isRemoved = false")
     List<Flight> findAllActive();
     
@@ -18,6 +18,8 @@ public interface FlightRepository extends JpaRepository<Flight, Integer> {
     Optional<Flight> findActiveById(Long id);
     
     Optional<Flight> findByCode(String code);
+    
+    Optional<Flight> findByCodeAndIsRemovedFalse(String code);
     
     @Query("SELECT f FROM Flight f WHERE ((f.origin = :origin AND f.destination = :destination) OR (f.origin = :destination AND f.destination = :origin)) AND ((f.departureDate = :dateFrom) OR (f.departureDate = :dateTo)) AND f.isRemoved = false")
     List<Flight> findByDateRangeAndLocations(LocalDate dateFrom, LocalDate dateTo, String origin, String destination);

@@ -15,7 +15,7 @@ public interface IFlightService {
     
     List<FlightResponseDTO> createFlightsFromList(List<FlightRequestDTO> flightDTOs);
     
-    void updateFlight(Long id, FlightRequestDTO flightDTO);
+    FlightResponseDTO updateFlight(Long id, FlightRequestDTO flightDTO);
     
     void deleteFlight(Long id);
     

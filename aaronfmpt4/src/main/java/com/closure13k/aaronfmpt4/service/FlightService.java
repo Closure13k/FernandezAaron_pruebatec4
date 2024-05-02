@@ -17,11 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class FlightService implements IFlightService {
-    
-    // Constant representing the entity name
     public static final String FLIGHT_ENTITY = "Flight";
+    
     private final FlightRepository repository;
     
+    /**
+     * Get all active flights
+     *
+     * @throws EntityNotFoundException if no active flights are found
+     */
     @Override
     public List<FlightResponseDTO> getAllFlights() {
         List<Flight> allActiveFlights = repository.findAllActive();
@@ -35,6 +39,11 @@ public class FlightService implements IFlightService {
     }
     
     
+    /**
+     * Get flight by id
+     *
+     * @throws EntityNotFoundException if no flight is found with the given id
+     */
     @Override
     public FlightResponseDTO getFlightById(Long id) {
         return repository.findActiveById(id)
@@ -42,6 +51,11 @@ public class FlightService implements IFlightService {
                 .orElseThrow(() -> EntityNotFoundException.byId(FLIGHT_ENTITY, id));
     }
     
+    /**
+     * Create a new flight
+     *
+     * @throws ExistingEntityException if a flight with the same code already exists
+     */
     @Override
     public FlightResponseDTO createFlight(FlightRequestDTO flightDTO) {
         repository.findByCode(flightDTO.code())
@@ -54,6 +68,11 @@ public class FlightService implements IFlightService {
     }
     
     
+    /**
+     * Create a list of flights
+     *
+     * @throws ExistingEntityException if a flight with the same code already exists
+     */
     @Override
     public List<FlightResponseDTO> createFlightsFromList(List<FlightRequestDTO> flightDTOs) {
         List<Flight> flights = repository.saveAll(flightDTOs.stream()
@@ -65,8 +84,14 @@ public class FlightService implements IFlightService {
                 .toList();
     }
     
+    /**
+     * Update flight
+     *
+     * @throws EntityNotFoundException if no flight is found with the given id
+     * @throws DTOValidationException  if no fields are updated
+     */
     @Override
-    public void updateFlight(Long id, FlightRequestDTO flightDTO) {
+    public FlightResponseDTO updateFlight(Long id, FlightRequestDTO flightDTO) {
         Flight flight = repository.findActiveById(id)
                 .orElseThrow(() -> EntityNotFoundException.byId(FLIGHT_ENTITY, id));
         
@@ -75,13 +100,54 @@ public class FlightService implements IFlightService {
             throw DTOValidationException.noFieldsToUpdate();
         }
         
+        Flight save = repository.save(flight);
+        return toBasicFlightDTOWithId(save);
+    }
+    
+    
+    /**
+     * Delete flight
+     *
+     * @throws EntityNotFoundException if no flight is found with the given id
+     */
+    @Override
+    public void deleteFlight(Long id) {
+        Flight flight = repository.findActiveById(id)
+                .orElseThrow(() -> EntityNotFoundException.byId(FLIGHT_ENTITY, id));
+        
+        flight.setIsRemoved(true);
         repository.save(flight);
     }
     
+    /**
+     * Get flights by date range and locations
+     *
+     * @throws EntityNotFoundException if no flights are found with the given parameters
+     */
+    @Override
+    public List<FlightResponseDTO> getFlightsByDateRangeAndLocations(LocalDate dateFrom, LocalDate dateTo, String origin, String destination) {
+        
+        List<Flight> flights = repository.findByDateRangeAndLocations(dateFrom, dateTo, origin, destination);
+        if (flights.isEmpty()) {
+            throw EntityNotFoundException.listIsEmpty(FLIGHT_ENTITY);
+        }
+        return flights.stream()
+                .map(FlightService::toBasicFlightDTO)
+                .toList();
+        
+        
+    }
+    
+    
+    /**
+     * Apply updates to the flight.
+     *
+     * @return the number of updates applied.
+     */
     private int checkAndApplyUpdates(FlightRequestDTO request, Flight flight) {
         int updates = 0;
         String code = request.code();
-        if (isCodeUpdated(code, flight.getCode())) {
+        if (isCodeValidAndUpdated(code, flight.getCode())) {
             flight.setCode(code);
             updates++;
         }
@@ -120,7 +186,14 @@ public class FlightService implements IFlightService {
         return updates;
     }
     
-    private boolean isCodeUpdated(String newCode, String currentCode) {
+    /**
+     * Check if the code provided is valid and was updated.
+     *
+     * @return true if the code is valid. False otherwise.
+     * @throws ExistingEntityException if a flight with the same code already exists
+     * @throws DTOValidationException  if the code is empty
+     */
+    private boolean isCodeValidAndUpdated(String newCode, String currentCode) {
         if (newCode != null && !newCode.isBlank() && !newCode.equals(currentCode)) {
             repository.findByCode(newCode)
                     .ifPresent(f -> {
@@ -131,39 +204,16 @@ public class FlightService implements IFlightService {
         return false;
     }
     
+    /**
+     * Check if the field was updated.
+     */
     private static boolean isFieldUpdated(String destination) {
         return destination != null && !destination.isBlank();
     }
     
-    
-    @Override
-    public void deleteFlight(Long id) {
-        Flight flight = repository.findActiveById(id)
-                .orElseThrow(() -> EntityNotFoundException.byId(FLIGHT_ENTITY, id));
-        
-        if (Boolean.TRUE.equals(flight.getIsRemoved())) {
-            throw EntityNotFoundException.byId(FLIGHT_ENTITY, id);
-        }
-        
-        flight.setIsRemoved(true);
-        repository.save(flight);
-    }
-    
-    @Override
-    public List<FlightResponseDTO> getFlightsByDateRangeAndLocations(LocalDate dateFrom, LocalDate dateTo, String origin, String destination) {
-        
-        List<Flight> flights = repository.findByDateRangeAndLocations(dateFrom, dateTo, origin, destination);
-        if (flights.isEmpty()) {
-            throw EntityNotFoundException.listIsEmpty(FLIGHT_ENTITY);
-        }
-        return flights.stream()
-                .map(FlightService::toBasicFlightDTO)
-                .toList();
-        
-        
-    }
-    
-    
+    /**
+     * Convert a flight to a basic flight DTO (code, origin, destination, departureDate, availableSeats, price)
+     */
     private static FlightResponseDTO toBasicFlightDTO(Flight flight) {
         return FlightResponseDTO.builder()
                 .withCode(flight.getCode())
@@ -175,6 +225,9 @@ public class FlightService implements IFlightService {
                 .build();
     }
     
+    /**
+     * Convert a flight to a basic flight DTO with id (id, code, origin, destination, departureDate, availableSeats, price)
+     */
     private FlightResponseDTO toBasicFlightDTOWithId(Flight flight) {
         return FlightResponseDTO.builder()
                 .withId(flight.getId())
@@ -187,6 +240,9 @@ public class FlightService implements IFlightService {
                 .build();
     }
     
+    /**
+     * Convert a flight DTO to a flight entity. Generate a code if the code is empty.
+     */
     private Flight fromDTO(FlightRequestDTO flightDTO) {
         Flight flight = new Flight();
         flight.setOrigin(flightDTO.origin());

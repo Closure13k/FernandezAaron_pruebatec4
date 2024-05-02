@@ -9,6 +9,7 @@ import com.closure13k.aaronfmpt4.exception.EntityNotFoundException;
 import com.closure13k.aaronfmpt4.exception.ExistingEntityException;
 import com.closure13k.aaronfmpt4.model.Hotel;
 import com.closure13k.aaronfmpt4.model.Room;
+import com.closure13k.aaronfmpt4.model.RoomBooking;
 import com.closure13k.aaronfmpt4.repository.HotelRepository;
 import com.closure13k.aaronfmpt4.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,11 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Predicate;
 
+/**
+ * Service class that handles the business logic for hotels and rooms.
+ */
 @RequiredArgsConstructor
 @Service
 public class HotelService implements IHotelService {
@@ -136,9 +141,6 @@ public class HotelService implements IHotelService {
     public void deleteHotel(Long id) {
         Hotel hotel = hotelRepository.findActiveById(id)
                 .orElseThrow(() -> EntityNotFoundException.byId(HOTEL_ENTITY, id));
-        if (Boolean.TRUE.equals(hotel.getIsRemoved())) {
-            throw EntityNotFoundException.byId(HOTEL_ENTITY, id);
-        }
         
         if (hasActiveChildren(hotel)) {
             throw ExistingEntityException.hasActiveChildren(HOTEL_ENTITY, ROOM_ENTITY, id);
@@ -244,10 +246,45 @@ public class HotelService implements IHotelService {
         Room room = roomRepository.findByHotelIdAndRoomId(hotel.getId(), roomId)
                 .orElseThrow(() -> EntityNotFoundException.byId(ROOM_ENTITY, roomId));
         
+        //Comprobar que la habitación no tenga reservas activas actualmente.
+        if (checkIfHasActiveBookings(room)) {
+            throw ExistingEntityException.hasActiveChildren(ROOM_ENTITY, "Room Booking", roomId);
+        }
+        
         room.setIsRemoved(true);
         roomRepository.save(room);
         
         return toBasicRoomDTO(room);
+    }
+    
+    /**
+     * Checks if a room has active bookings before deletion.
+     * If the room has active bookings, an ExistingEntityException will be thrown.
+     *
+     * @param room The room to check.
+     * @return True if the room has active bookings, false otherwise.
+     */
+    private boolean checkIfHasActiveBookings(Room room) {
+        return room.getBookingList().stream()
+                .anyMatch(hasActiveBookingAsOf(LocalDate.now()));
+    }
+    
+    /**
+     * Returns a predicate that checks if a room booking is active as of the given date.
+     * The booking is active if the check-in date is before or equal to the given date
+     * and the check-out date is after or equal to the given date.
+     *
+     * @param date The date to check.
+     * @return The predicate.
+     */
+    private static Predicate<RoomBooking> hasActiveBookingAsOf(LocalDate date) {
+        return booking -> {
+            LocalDate checkIn = booking.getStartDate();
+            LocalDate checkOut = booking.getEndDate();
+            return (checkIn.isBefore(date) || checkIn.isEqual(date)) &&
+                    (checkOut.isAfter(date) || checkOut.isEqual(date));
+            
+        };
     }
     
     /**
@@ -359,8 +396,6 @@ public class HotelService implements IHotelService {
         return updates;
     }
     
-    // ------------------------ Helper methods ------------------------
-    
     /**
      * Generates a code for the hotel if it was not provided in the request.
      *
@@ -395,8 +430,6 @@ public class HotelService implements IHotelService {
         }
         return codeCharacters.toUpperCase();
     }
-    
-    // ------------------------ Conversion methods ------------------------
     
     /**
      * Converts a HotelRequestDTO to a Hotel entity.

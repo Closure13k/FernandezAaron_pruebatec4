@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 import java.util.List;
 
 @Data
@@ -44,13 +45,12 @@ public class Flight {
     /**
      * Generate a code for the flight if one is not provided.
      * Generates the code from the first 3 letters of the origin and destination.
-     * Then adds the number of available seats, the departure date, and the current day of the year.
+     * Then adds the number of available seats and the departure date.
      */
     public void generateCode() {
         this.code = origin.substring(0, 3).toUpperCase()
                 + destination.substring(0, 3).toUpperCase()
                 + String.format("%04d", availableSeats)
-                + departureDate.toString().replace("-", "")
-                + LocalDate.now().getDayOfYear();
+                + departureDate.toString().replace("-", "");
     }
 }

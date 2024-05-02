@@ -33,6 +33,11 @@ public class RoomBookingService implements IRoomBookingService {
     
     private final RoomRepository roomRepository;
     
+    /**
+     * Get all room bookings
+     *
+     * @throws EntityNotFoundException if there are no room bookings
+     */
     @Override
     public List<RoomBookingResponseDTO> getAllRoomBookings() {
         List<RoomBooking> bookings = roomBookingRepository.findAll();
@@ -45,6 +50,11 @@ public class RoomBookingService implements IRoomBookingService {
                 .toList();
     }
     
+    /**
+     * Get room booking by id
+     *
+     * @throws EntityNotFoundException if room booking with the given id does not exist
+     */
     @Override
     public RoomBookingResponseDTO getRoomBookingById(Long id) {
         return roomBookingRepository.findById(id)
@@ -52,6 +62,13 @@ public class RoomBookingService implements IRoomBookingService {
                 .orElseThrow(() -> EntityNotFoundException.byId(ROOM_BOOKING_ENTITY, id));
     }
     
+    /**
+     * Create a new room booking
+     *
+     * @throws EntityNotFoundException if room with the given code does not exist
+     * @throws DTOValidationException  if room is not available in the requested dates
+     * @throws DTOValidationException  if room is already booked in the requested dates
+     */
     @Override
     public RoomBookingResponseDTO createRoomBooking(RoomBookingRequestDTO request) {
         Room room = roomRepository.findByCode(request.roomCode())
@@ -71,7 +88,12 @@ public class RoomBookingService implements IRoomBookingService {
         return toRoomBookingDTOWithCost(roomBookingRepository.save(booking));
     }
     
-    
+    /**
+     * Update room booking
+     *
+     * @throws EntityNotFoundException if room booking with the given id does not exist
+     * @throws DTOValidationException  if there were no fields to update
+     */
     @Override
     public void updateRoomBooking(Long id, RoomBookingRequestDTO request) {
         RoomBooking booking = roomBookingRepository.findById(id)
@@ -84,12 +106,20 @@ public class RoomBookingService implements IRoomBookingService {
         roomBookingRepository.save(booking);
     }
     
+    /**
+     * Delete room booking
+     *
+     * @param id id of the room booking to delete
+     */
     @Override
     public void deleteRoomBooking(Long id) {
         roomBookingRepository.delete(roomBookingRepository.findById(id)
                 .orElseThrow(() -> EntityNotFoundException.byId(ROOM_BOOKING_ENTITY, id)));
     }
     
+    /**
+     * Check and apply updates to the room booking
+     */
     private int checkAndApplyUpdates(Long id, RoomBookingRequestDTO request, RoomBooking booking) {
         int updatedFields = 0;
         Room room = booking.getRoom();
@@ -112,6 +142,11 @@ public class RoomBookingService implements IRoomBookingService {
     }
     
     
+    /**
+     * Check if the room is available in the requested dates
+     *
+     * @throws DTOValidationException if room is not available in the requested dates
+     */
     private void checkIfRequestRangeIsValid(RoomBookingRequestDTO request, Room room) {
         if (request.dateFrom().isBefore(room.getAvailableFrom()) || request.dateTo().isAfter(room.getAvailableTo())) {
             throw new DTOValidationException(
@@ -120,6 +155,11 @@ public class RoomBookingService implements IRoomBookingService {
         }
     }
     
+    /**
+     * Check if the room is already booked in the requested dates
+     *
+     * @throws DTOValidationException if room is already booked in the requested dates
+     */
     private void checkIfRequestRangeHasNoBookings(Long bookingId, RoomBookingRequestDTO request, Room room) {
         if (roomBookingRepository.isRoomBooked(room.getId(), bookingId, request.dateFrom(), request.dateTo())) {
             throw new DTOValidationException("Room is already booked in the requested dates.");
@@ -127,6 +167,9 @@ public class RoomBookingService implements IRoomBookingService {
     }
     
     
+    /**
+     * Convert RoomBooking to RoomBookingResponseDTO (id, room, startDate, endDate)
+     */
     private static RoomBookingResponseDTO toFullInfoRoomBookingDTO(RoomBooking booking) {
         return RoomBookingResponseDTO.builder()
                 .withId(booking.getId())
@@ -136,12 +179,18 @@ public class RoomBookingService implements IRoomBookingService {
                 .build();
     }
     
+    /**
+     * Convert Room to RoomResponseDTO (code)
+     */
     private static RoomResponseDTO toBasicRoomDTO(Room room) {
         return RoomResponseDTO.builder()
                 .withCode(room.getCode())
                 .build();
     }
     
+    /**
+     * Convert RoomBooking to RoomBookingResponseDTO with cost (nights, bookingCost)
+     */
     private static RoomBookingResponseDTO toRoomBookingDTOWithCost(RoomBooking save) {
         int nights = save.getEndDate().getDayOfYear() - save.getStartDate().getDayOfYear();
         BigDecimal totalPrice = save.getRoom().getPrice().multiply(BigDecimal.valueOf(nights));
@@ -152,6 +201,9 @@ public class RoomBookingService implements IRoomBookingService {
                 .build();
     }
     
+    /**
+     * Convert RoomBooking to RoomBookingResponseDTO (room, startDate, endDate, nights, bookingCost, clients)
+     */
     private RoomBookingResponseDTO toBasicRoomBookingDTO(RoomBooking booking) {
         int nights = booking.getEndDate().getDayOfYear() - booking.getStartDate().getDayOfYear();
         BigDecimal totalPrice = booking.getRoom().getPrice().multiply(BigDecimal.valueOf(nights));
@@ -166,7 +218,9 @@ public class RoomBookingService implements IRoomBookingService {
                 .build();
     }
     
-    
+    /**
+     * Convert Room to RoomResponseDTO (hotel, code, type, price)
+     */
     private RoomResponseDTO toRoomDTO(Room room) {
         return RoomResponseDTO.builder()
                 .withHotel(toHotelDTO(room.getHotel()))
@@ -176,6 +230,9 @@ public class RoomBookingService implements IRoomBookingService {
                 .build();
     }
     
+    /**
+     * Convert Hotel to HotelResponseDTO (name, city)
+     */
     private HotelResponseDTO toHotelDTO(Hotel hotel) {
         return HotelResponseDTO.builder()
                 .withName(hotel.getName())

@@ -13,12 +13,11 @@ public class Aaronfmpt4Application {
         SpringApplication.run(Aaronfmpt4Application.class, args);
     }
     
-    
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI().info(new Info()
                 .title("Tourism Agency API")
-                .version("0.0.1")
+                .version("1.0.0")
                 .description("API for a tourism agency."));
     }
     

@@ -7,7 +7,8 @@ import com.closure13k.aaronfmpt4.dto.response.RoomResponseDTO;
 import com.closure13k.aaronfmpt4.dto.validationgroup.OnCreate;
 import com.closure13k.aaronfmpt4.dto.validationgroup.OnUpdate;
 import com.closure13k.aaronfmpt4.service.IHotelService;
-import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -38,29 +39,64 @@ import java.util.List;
 public class HotelController {
     private final IHotelService service;
     
+    /**
+     * Get all hotels.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of hotels"),
+            @ApiResponse(responseCode = "404", description = "No hotels found")
+    })
     @GetMapping("/hotels")
     public ResponseEntity<List<HotelResponseDTO>> getHotels() {
         return ResponseEntity.ok(service.getAllHotels());
     }
     
-    
+    /**
+     * Get hotel by id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved hotel"),
+            @ApiResponse(responseCode = "404", description = "Hotel not found")
+    })
     @GetMapping("/hotels/{id}")
     public ResponseEntity<HotelResponseDTO> getHotelById(@Positive @PathVariable Long id) {
         return ResponseEntity.ok(service.getHotelById(id));
     }
     
-    
+    /**
+     * Create a new hotel.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully created hotel"),
+            @ApiResponse(responseCode = "400", description = "If the request body is invalid"),
+            @ApiResponse(responseCode = "409", description = "Hotel already exists")
+    })
     @PostMapping("/hotels/new")
     public ResponseEntity<HotelResponseDTO> createHotel(@Validated(OnCreate.class) @RequestBody HotelRequestDTO hotel) {
         return ResponseEntity.ok(service.createHotel(hotel));
     }
     
+    /**
+     * Create multiple hotels.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully created hotels"),
+            @ApiResponse(responseCode = "400", description = "If the request body is invalid"),
+            @ApiResponse(responseCode = "409", description = "Hotel already exists")
+    })
     @PostMapping("/hotels/newbatch")
     public ResponseEntity<List<HotelResponseDTO>> createHotels(@RequestBody List<HotelRequestDTO> hotels) {
         return ResponseEntity.ok(service.createHotelsFromList(hotels));
     }
     
-    
+    /**
+     * Update hotel by id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully updated hotel"),
+            @ApiResponse(responseCode = "400", description = "If the request body is invalid"),
+            @ApiResponse(responseCode = "404", description = "Hotel not found")
+    })
     @PutMapping("/hotels/edit/{id}")
     public ResponseEntity<HotelResponseDTO> updateHotel(@Positive @PathVariable Long id,
                                                         @Validated(OnUpdate.class) @RequestBody HotelRequestDTO hotel) {
@@ -68,29 +104,66 @@ public class HotelController {
         return ResponseEntity.ok(service.getHotelById(id));
     }
     
+    /**
+     * Delete hotel by id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Successfully deleted hotel"),
+            @ApiResponse(responseCode = "404", description = "Hotel not found")
+    })
     @DeleteMapping("/hotels/delete/{id}")
     public ResponseEntity<HotelResponseDTO> deleteHotel(@Positive @PathVariable Long id) {
         service.deleteHotel(id);
         return ResponseEntity.accepted().build();
     }
     
+    /**
+     * Get all rooms.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of rooms"),
+            @ApiResponse(responseCode = "404", description = "No rooms found or hotel not found")
+    })
     @GetMapping("/hotels/{id}/rooms")
     public ResponseEntity<List<RoomResponseDTO>> getRoomsByHotelId(@NotNull @Positive @PathVariable Long id) {
         return ResponseEntity.ok(service.getRoomsByHotelId(id));
     }
     
+    /**
+     * Get room by hotel id and room id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved room"),
+            @ApiResponse(responseCode = "404", description = "Room or hotel not found")
+    })
     @GetMapping("/hotels/{hotelId}/rooms/{roomId}")
     public ResponseEntity<RoomResponseDTO> getRoomByHotelIdAndRoomId(@Positive @PathVariable Long hotelId,
                                                                      @Positive @PathVariable Long roomId) {
         return ResponseEntity.ok(service.getRoomByHotelIdAndRoomId(hotelId, roomId));
     }
     
+    /**
+     * Create a new room.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully created room"),
+            @ApiResponse(responseCode = "400", description = "If the request body is invalid"),
+            @ApiResponse(responseCode = "404", description = "Hotel not found")
+    })
     @PostMapping("/hotels/{id}/rooms/new")
     public ResponseEntity<RoomResponseDTO> createRoom(@Positive @PathVariable Long id,
                                                       @Validated(OnCreate.class) @RequestBody RoomRequestDTO room) {
         return ResponseEntity.ok(service.createRoom(id, room));
     }
     
+    /**
+     * Update room by hotel id and room id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully updated room"),
+            @ApiResponse(responseCode = "400", description = "If the request body is invalid"),
+            @ApiResponse(responseCode = "404", description = "Hotel or room not found")
+    })
     @PutMapping("/hotels/{hotelId}/rooms/edit/{roomId}")
     public ResponseEntity<RoomResponseDTO> updateRoom(@Positive @PathVariable Long hotelId,
                                                       @Positive @PathVariable Long roomId,
@@ -99,12 +172,26 @@ public class HotelController {
         return ResponseEntity.ok().build();
     }
     
+    /**
+     * Delete room by hotel id and room id.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Successfully deleted room"),
+            @ApiResponse(responseCode = "404", description = "Hotel or room not found")
+    })
     @DeleteMapping("/hotels/{hotelId}/rooms/delete/{roomId}")
     public ResponseEntity<RoomResponseDTO> deleteRoom(@Positive @PathVariable Long hotelId,
                                                       @Positive @PathVariable Long roomId) {
         return ResponseEntity.ok(service.deleteRoom(hotelId, roomId));
     }
     
+    /**
+     * Get rooms by date and destination.
+     */
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of rooms"),
+            @ApiResponse(responseCode = "404", description = "No rooms found")
+    })
     @GetMapping("/hotels/rooms")
     public ResponseEntity<List<RoomResponseDTO>> getRoomsByDateAndDestination(
             @DateTimeFormat(fallbackPatterns = {"yyyy/MM/dd", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"})

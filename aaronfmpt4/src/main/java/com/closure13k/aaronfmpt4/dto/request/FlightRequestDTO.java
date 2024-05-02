@@ -1,6 +1,7 @@
 package com.closure13k.aaronfmpt4.dto.request;
 
 import com.closure13k.aaronfmpt4.dto.validationgroup.OnCreate;
+import com.closure13k.aaronfmpt4.dto.validationgroup.OnUpdate;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,22 +14,22 @@ public record FlightRequestDTO(
         String code,
         
         @NotNull(groups = {OnCreate.class}, message = "'origin' must not be null on create.")
-        @Size(min = 3, max = 100, message = "'origin' must be between 3 and 100 characters")
+        @Size(groups = {OnCreate.class, OnUpdate.class}, min = 3, max = 100, message = "'origin' must be between 3 and 100 characters")
         String origin,
         
         @NotNull(groups = {OnCreate.class}, message = "'destination' must not be null on create.")
-        @Size(min = 3, max = 100, message = "'destination' must be between 3 and 100 characters")
+        @Size(groups = {OnCreate.class, OnUpdate.class}, min = 3, max = 100, message = "'destination' must be between 3 and 100 characters")
         String destination,
         
         @NotNull(groups = {OnCreate.class}, message = "'departureDate' must not be null on create.")
         LocalDate departureDate,
         
         @NotNull(groups = {OnCreate.class}, message = "'availableSeats' must not be null on create.")
-        @DecimalMin(value = "0", message = "'availableSeats' must be greater than 0")
+        @DecimalMin(groups = {OnCreate.class, OnUpdate.class}, value = "0", message = "'availableSeats' must be greater than 0")
         Integer availableSeats,
         
         @NotNull(groups = {OnCreate.class}, message = "'price' must not be null on create.")
-        @DecimalMin(value = "0.0", inclusive = false, message = "'price' must be greater than 0")
+        @DecimalMin(groups = {OnCreate.class, OnUpdate.class}, value = "0.0", inclusive = false, message = "'price' must be greater than 0")
         BigDecimal price
 ) {
 }

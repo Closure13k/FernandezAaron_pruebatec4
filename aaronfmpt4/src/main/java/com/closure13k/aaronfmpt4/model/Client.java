@@ -17,7 +17,7 @@ public class Client {
     private Long id;
     
     @Column(unique = true, nullable = false)
-    private String nif;     // ? TODO: Considera una validación estricta de DNI. Si no, al menos el pattern.
+    private String nif;
     
     @Column(nullable = false, length = 50)
     private String name;

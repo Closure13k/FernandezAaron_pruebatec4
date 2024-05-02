@@ -22,4 +22,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     
     Optional<Hotel> findByCode(String code);
     
+    Optional<Hotel> findByCodeAndIsRemovedFalse(String code);
+    
 }
