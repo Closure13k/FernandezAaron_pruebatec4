@@ -1,3 +1,8 @@
+[![Button Example]][Link]
+
+[Link]: READ_ME_en.md
+
+[Button Example]: https://img.shields.io/badge/README:%20English-6188FF?style=for-the-badge
 # PRUEBA TÉCNICA 4
 Hack A Boss - Softtek
 
