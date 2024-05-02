@@ -1,6 +1,6 @@
 [![Button Example]][Link]
 
-[Link]: ./READ_ME.md
+[Link]: ..
 
 [Button Example]: https://img.shields.io/badge/README:%20Spanish-CD3939?style=for-the-badge
 
